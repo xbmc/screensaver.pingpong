@@ -62,6 +62,7 @@ bool	CPingPong::RestoreDevice(CRenderD3D* render)
 //
 void	CPingPong::InvalidateDevice(CRenderD3D* render)
 {
+  render->Release();
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -105,6 +106,7 @@ bool		CPingPong::Draw(CRenderD3D* render)
 	vert2 = AddQuad(vert2, m_Paddle[0].m_Pos, m_Paddle[0].m_Size, m_Paddle[0].m_Col);
 	vert2 = AddQuad(vert2, m_Paddle[1].m_Pos, m_Paddle[1].m_Size, m_Paddle[1].m_Col);
 
+#ifndef WIN32
         glBegin(GL_QUADS);
         for (size_t j=0;j<12;++j)
         {
@@ -112,7 +114,11 @@ bool		CPingPong::Draw(CRenderD3D* render)
           glVertex2f(vert[j].pos.x, vert[j].pos.y);
         }
         glEnd();
-
+#else
+  render->DrawQuad(&vert[0]);
+  render->DrawQuad(&vert[4]);
+  render->DrawQuad(&vert[8]);
+#endif
 	return true;
 }
 
