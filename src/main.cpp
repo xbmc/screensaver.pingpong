@@ -27,7 +27,7 @@
 #include "pingpong.h"
 #include "timer.h"
 #include <time.h>
-#include <kodi/xbmc_scr_dll.h>
+#include <xbmc_scr_dll.h>
 #include <string.h>
 
 static char gScrName[1024];
