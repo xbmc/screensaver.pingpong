@@ -7,13 +7,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
 enable_language(CXX)
 
 find_package(kodi REQUIRED)
+find_package(OpenGL REQUIRED)
 
 include_directories(${KODI_INCLUDE_DIR})
 
 set(PINGPONG_SOURCES src/main.cpp
                      src/pingpong.cpp)
 
-set(DEPLIBS)
+set(DEPLIBS ${OPENGL_LIBRARIES})
 
 build_addon(screensaver.pingpong PINGPONG DEPLIBS)
 
