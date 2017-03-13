@@ -238,7 +238,7 @@ void CRenderD3D::Begin(void)
 {
 #ifdef WIN32
   m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-  size_t strides = sizeof(TRenderVertex), offsets = 0;
+  UINT strides = sizeof(TRenderVertex), offsets = 0;
   m_pContext->IASetVertexBuffers(0, 1, &m_pVBuffer, &strides, &offsets);
   m_pContext->PSSetShader(m_pPShader, NULL, 0);
 #endif
