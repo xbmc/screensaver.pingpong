@@ -107,16 +107,6 @@ ADDON_STATUS ADDON_GetStatus()
   return ADDON_STATUS_OK;
 }
 
-bool ADDON_HasSettings()
-{
-  return true;
-}
-
-unsigned int ADDON_GetSettings(ADDON_StructSetting ***sSet)
-{
-  return 0;
-}
-
 ADDON_STATUS ADDON_SetSetting(const char *strSetting, const void *value)
 {
   static const float C[5][3] = {{1.0, 1.0, 1.0},
@@ -138,14 +128,6 @@ ADDON_STATUS ADDON_SetSetting(const char *strSetting, const void *value)
     ballspeed[1] = *(float*)value;
 
   return ADDON_STATUS_OK;
-}
-
-void ADDON_FreeSettings()
-{
-}
-
-void ADDON_Announce(const char *flag, const char *sender, const char *message, const void *data)
-{
 }
 
 #ifdef WIN32
