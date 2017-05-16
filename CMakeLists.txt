@@ -14,6 +14,11 @@ include_directories(${KODI_INCLUDE_DIR})
 set(PINGPONG_SOURCES src/main.cpp
                      src/pingpong.cpp)
 
+set(PINGPONG_HEADERS src/main.h
+                     src/pingpong.h
+                     src/timer.h
+                     src/types.h)
+
 set(DEPLIBS ${OPENGL_LIBRARIES})
 
 build_addon(screensaver.pingpong PINGPONG DEPLIBS)
