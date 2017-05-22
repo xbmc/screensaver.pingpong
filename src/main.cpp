@@ -47,7 +47,7 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
   if (!props)
     return ADDON_STATUS_UNKNOWN;
 
-  SCR_PROPS* scrprops = (SCR_PROPS*)props;
+  AddonProps_Screensaver* scrprops = (AddonProps_Screensaver*)props;
 
   gRender.m_Width = scrprops->width;
   gRender.m_Height = scrprops->height;
@@ -58,6 +58,8 @@ ADDON_STATUS ADDON_Create(void* hdl, void* props)
 
 extern "C" void Stop() 
 {
+	gPingPong.InvalidateDevice(&gRender);
+	SAFE_DELETE(gTimer);
 }
 
 extern "C" void Start()
@@ -86,16 +88,6 @@ extern "C" void Render()
 	gTimer->Update();
 	gPingPong.Update(gTimer->GetDeltaTime());
 	gPingPong.Draw(&gRender);
-}
-
-////////////////////////////////////////////////////////////////////////////
-// XBMC tells us to stop the screensaver we should free any memory and release
-// any resources we have created.
-//
-extern "C" void ADDON_Stop()
-{
-	gPingPong.InvalidateDevice(&gRender);
-	SAFE_DELETE(gTimer);
 }
 
 void ADDON_Destroy()
