@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="screensaver.pingpong"
-  version="1.2.2"
+  version="1.2.3"
   name="Ping Pong"
   provider-name="spiff">
   <requires>@ADDON_DEPENDS@</requires>
