@@ -36,14 +36,6 @@ public:
   ID3D11PixelShader*   m_pPShader;
 #endif
 
-	int			m_Width;
-	int			m_Height;
-
+  int m_Width;
+  int m_Height;
 };
-
-/***************************** G L O B A L S *******************************/
-
-void LoadSettings();
-void SetDefaults();
-
-/***************************** I N L I N E S *******************************/

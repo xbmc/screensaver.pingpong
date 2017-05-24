@@ -26,100 +26,105 @@
 #include "main.h"
 #include "pingpong.h"
 #include "timer.h"
+
+#include <kodi/addon-instance/Screensaver.h>
 #include <time.h>
-#include <xbmc_scr_dll.h>
 #include <string.h>
 
-static char gScrName[1024];
+class CScreensaverPingPong
+  : public kodi::addon::CAddonBase,
+    public kodi::addon::CInstanceScreensaver
+{
+public:
+  CScreensaverPingPong();
 
-CRenderD3D		gRender;
-CPingPong		gPingPong;
-CTimer*			gTimer = null;
-CRGBA			gCol[3];
-float ballspeed[2];
+  virtual bool Start() override;
+  virtual void Stop() override;
+  virtual void Render() override;
+
+private:
+  CPingPong m_pingPong;
+  CTimer* m_timer;
+  CRenderD3D m_render;
+  CRGBA m_col[3];
+  float m_ballspeed[2];
+};
 
 ////////////////////////////////////////////////////////////////////////////
-// XBMC has loaded us into memory, we should set our core values
+// Kodi has loaded us into memory, we should set our core values
 // here and load any settings we may have from our config file
 //
-ADDON_STATUS ADDON_Create(void* hdl, void* props)
-{
-  if (!props)
-    return ADDON_STATUS_UNKNOWN;
-
-  AddonProps_Screensaver* scrprops = (AddonProps_Screensaver*)props;
-
-  gRender.m_Width = scrprops->width;
-  gRender.m_Height = scrprops->height;
-  gRender.Init(scrprops->device);
-
-  return ADDON_STATUS_NEED_SETTINGS;
-}
-
-extern "C" void Stop() 
-{
-	gPingPong.InvalidateDevice(&gRender);
-	SAFE_DELETE(gTimer);
-}
-
-extern "C" void Start()
-{
-  srand(time(NULL));
-
-  gPingPong.m_Paddle[0].m_Col = gCol[0];
-  gPingPong.m_Paddle[1].m_Col = gCol[1];
-  gPingPong.m_Ball.m_Col = gCol[2];
-  gPingPong.m_Ball.m_Vel.Set(ballspeed[0]*gRender.m_Width, ballspeed[1]*gRender.m_Height, 0.0);
-
-  gTimer = new CTimer();
-  gTimer->Init();
-  if (!gPingPong.RestoreDevice(&gRender))
-    Stop();
-}
-
-////////////////////////////////////////////////////////////////////////////
-// XBMC tells us to render a frame of our screensaver. This is called on
-// each frame render in XBMC, you should render a single frame only - the DX
-// device will already have been cleared.
-//
-extern "C" void Render()
-{
-	gRender.Begin();
-	gTimer->Update();
-	gPingPong.Update(gTimer->GetDeltaTime());
-	gPingPong.Draw(&gRender);
-}
-
-void ADDON_Destroy()
-{
-}
-
-ADDON_STATUS ADDON_GetStatus()
-{
-  return ADDON_STATUS_OK;
-}
-
-ADDON_STATUS ADDON_SetSetting(const char *strSetting, const void *value)
+CScreensaverPingPong::CScreensaverPingPong()
+  : m_timer(nullptr)
 {
   static const float C[5][3] = {{1.0, 1.0, 1.0},
                                 {0.5, 0.5, 0.5},
                                 {1.0, 0.0, 0.0},
                                 {0.0, 1.0, 0.0},
                                 {0.0, 0.0, 1.0}};
-  int c = *(int*)value;
-  if (strcmp(strSetting,"paddle1") == 0 && c < 5)
-    gCol[0].Set(C[c][0], C[c][1], C[c][2], 1.0);
-  if (strcmp(strSetting,"paddle2") == 0 && c < 5)
-    gCol[1].Set(C[c][0], C[c][1], C[c][2], 1.0);
-  if (strcmp(strSetting,"ball") == 0 && c < 5)
-    gCol[2].Set(C[c][0], C[c][1], C[c][2], 1.0);
+  int c = kodi::GetSettingInt("paddle1");
+  if (c < 5)
+    m_col[0].Set(C[c][0], C[c][1], C[c][2], 1.0);
+  c = kodi::GetSettingInt("paddle2");
+  if (c < 5)
+    m_col[1].Set(C[c][0], C[c][1], C[c][2], 1.0);
+  c = kodi::GetSettingInt("ball");
+  if (c < 5)
+    m_col[2].Set(C[c][0], C[c][1], C[c][2], 1.0);
 
-  if (strcmp(strSetting, "ballspeedx") == 0)
-    ballspeed[0] = *(float*)value;
-  if (strcmp(strSetting, "ballspeedy") == 0)
-    ballspeed[1] = *(float*)value;
+  m_ballspeed[0] = kodi::GetSettingFloat("ballspeedx");
+  m_ballspeed[1] = kodi::GetSettingFloat("ballspeedy");
 
-  return ADDON_STATUS_OK;
+  m_render.m_Width = Width();
+  m_render.m_Height = Height();
+  m_render.Init(Device());
+}
+
+////////////////////////////////////////////////////////////////////////////
+// Kodi tells us we should get ready to start rendering. This function
+// is called once when the screensaver is activated by Kodi.
+//
+bool CScreensaverPingPong::Start()
+{
+  srand(time(NULL));
+
+  m_pingPong.m_Paddle[0].m_Col = m_col[0];
+  m_pingPong.m_Paddle[1].m_Col = m_col[1];
+  m_pingPong.m_Ball.m_Col = m_col[2];
+  m_pingPong.m_Ball.m_Vel.Set(m_ballspeed[0]*m_render.m_Width, m_ballspeed[1]*m_render.m_Height, 0.0);
+
+  m_timer = new CTimer();
+  m_timer->Init();
+  if (!m_pingPong.RestoreDevice(&m_render))
+  {
+    Stop();
+    return false;
+  }
+
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////
+// Kodi tells us to stop the screensaver we should free any memory and release
+// any resources we have created.
+//
+void CScreensaverPingPong::Stop()
+{
+  m_pingPong.InvalidateDevice(&m_render);
+  SAFE_DELETE(m_timer);
+}
+
+////////////////////////////////////////////////////////////////////////////
+// Kodi tells us to render a frame of our screensaver. This is called on
+// each frame render in Kodi, you should render a single frame only - the DX
+// device will already have been cleared.
+//
+void CScreensaverPingPong::Render()
+{
+  m_render.Begin();
+  m_timer->Update();
+  m_pingPong.Update(m_timer->GetDeltaTime());
+  m_pingPong.Draw(&m_render);
 }
 
 #ifdef WIN32
@@ -239,3 +244,5 @@ void CRenderD3D::Release(void)
   SAFE_RELEASE(m_pVBuffer);
 #endif
 }
+
+ADDONCREATOR(CScreensaverPingPong);
