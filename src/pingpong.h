@@ -13,6 +13,12 @@
 
 ////////////////////////////////////////////////////////////////////////////
 //
+
+#ifndef WIN32
+#include "shaders/GUIShader.h"
+#endif
+#include "kodi/AddonBase.h"
+
 typedef	struct	TRenderVertex
 {
 	CVector		pos;
@@ -57,7 +63,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////
 //
-class CPingPong
+class ATTRIBUTE_HIDDEN CPingPong
 {
 public:
 					CPingPong();
@@ -69,10 +75,18 @@ public:
 
 	CPaddel			m_Paddle[2];
 	CBall			m_Ball;
-        int topy;
-        int bottomy;
+  int topy;
+  int bottomy;
+  int m_Width = 0;
+  int m_Height = 0;
 protected:
 	TRenderVertex*	AddQuad(TRenderVertex* vert, const CVector& pos, const CVector& size, const CRGBA& col);
+
+#ifndef WIN32
+  CGUIShader* m_shader;
+  GLuint m_vertexVBO;
+  GLuint m_indexVBO;
+#endif
 };
 
 /***************************** I N L I N E S *******************************/

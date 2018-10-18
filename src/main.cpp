@@ -31,7 +31,7 @@
 #include <time.h>
 #include <string.h>
 
-class CScreensaverPingPong
+class ATTRIBUTE_HIDDEN CScreensaverPingPong
   : public kodi::addon::CAddonBase,
     public kodi::addon::CInstanceScreensaver
 {
