@@ -24,9 +24,17 @@
 #include "main.h"
 #include "pingpong.h"
 
+#ifdef HAS_GLES2
 #if defined(__APPLE__)
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
+#else
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#endif//__APPLE__
+#elif defined(__APPLE__)
 #include <OpenGL/gl.h>
-#else !defined(WIN32)
+#elif !defined(WIN32)
 #include <GL/gl.h>
 #endif
 
@@ -38,28 +46,45 @@
 #define PADDLEPOSX	20.0f
 #define PADDLEMAXSPEED	500.0f
 
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
 ////////////////////////////////////////////////////////////////////////////
 //
 CPingPong::CPingPong()
 {
+#ifndef WIN32
+  m_shader = new CGUIShader("vert.glsl", "frag.glsl");
+  m_shader->CompileAndLink();
+  glGenBuffers(1, &m_vertexVBO);
+  glGenBuffers(1, &m_indexVBO);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
 CPingPong::~CPingPong()
 {
+#ifndef WIN32
+  delete m_shader;
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &m_vertexVBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &m_indexVBO);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
 bool	CPingPong::RestoreDevice(CRenderD3D* render)
 {
+  m_Width = render->m_Width;
+  m_Height = render->m_Height;
 	m_Paddle[0].m_Pos.Set( PADDLEPOSX, render->m_Height/2, 0.0f);
 	m_Paddle[1].m_Pos.Set(render->m_Width-PADDLEPOSX, render->m_Height/2, 0.0f);
 
 	m_Ball.m_Pos.Set((render->m_Width-2*PADDLEPOSX)/2.0+PADDLEPOSX, render->m_Height/2, 0.0f);
-        topy = 3*render->m_Height/4;
-        bottomy = render->m_Height/4;
+  topy = 7*render->m_Height/8;
+  bottomy = render->m_Height/8;
 	return true;
 }
 
@@ -112,13 +137,57 @@ bool		CPingPong::Draw(CRenderD3D* render)
 	vert2 = AddQuad(vert2, m_Paddle[1].m_Pos, m_Paddle[1].m_Size, m_Paddle[1].m_Col);
 
 #ifndef WIN32
-        glBegin(GL_QUADS);
-        for (size_t j=0;j<12;++j)
-        {
-          glColor3f(vert[j].col.r, vert[j].col.g, vert[j].col.b);
-          glVertex2f(vert[j].pos.x, vert[j].pos.y);
-        }
-        glEnd();
+  m_shader->PushMatrix();
+  m_shader->Enable();
+
+  struct PackedVertex
+  {
+    GLfloat x, y, z;
+    GLfloat r, g, b;
+  } vertex[12];
+
+  GLubyte idx[3*8];
+  for (size_t j = 0; j < 12; ++j)
+  {
+    vertex[j].x = -1.0 + vert[j].pos.x * 2.0 / m_Width;
+    vertex[j].y = -1.0 + vert[j].pos.y * 2.0 / m_Height;
+    vertex[j].z = 0.0;
+    vertex[j].r = vert[j].col.r;
+    vertex[j].g = vert[j].col.g;
+    vertex[j].b = vert[j].col.b;
+  }
+
+  for (size_t j = 0; j < 4; ++j)
+  {
+    idx[6*j]   = 4*j;
+    idx[6*j+1] = 4*j+1;
+    idx[6*j+2] = 4*j+2;
+    idx[6*j+3] = 4*j+2;
+    idx[6*j+4] = 4*j+3;
+    idx[6*j+5] = 4*j;
+  }
+
+  GLint posLoc = m_shader->GetPosLoc();
+  GLint colLoc = m_shader->GetColLoc();
+
+  glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(PackedVertex)*12, &vertex[0], GL_STATIC_DRAW);
+
+  glVertexAttribPointer(posLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, x)));
+  glVertexAttribPointer(colLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, r)));
+
+  glEnableVertexAttribArray(posLoc);
+  glEnableVertexAttribArray(colLoc);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*24, idx, GL_STATIC_DRAW);
+  glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_BYTE, 0);
+
+  glDisableVertexAttribArray(posLoc);
+  glDisableVertexAttribArray(colLoc);
+
+  m_shader->Disable();
+  m_shader->PopMatrix();
 #else
   render->DrawQuad(&vert[0]);
   render->DrawQuad(&vert[4]);
