@@ -173,14 +173,15 @@ bool		CPingPong::Draw(CRenderD3D* render)
   glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(PackedVertex)*12, &vertex[0], GL_STATIC_DRAW);
 
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*24, idx, GL_STATIC_DRAW);
+
   glVertexAttribPointer(posLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, x)));
   glVertexAttribPointer(colLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, r)));
 
   glEnableVertexAttribArray(posLoc);
   glEnableVertexAttribArray(colLoc);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*24, idx, GL_STATIC_DRAW);
   glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_BYTE, 0);
 
   glDisableVertexAttribArray(posLoc);
