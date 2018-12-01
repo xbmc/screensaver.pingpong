@@ -19,16 +19,16 @@
 /***************************** C L A S S E S *******************************/
 
 ////////////////////////////////////////////////////////////////////////////
-// 
+//
 struct TRenderVertex;
 
 class CRenderD3D
 {
 public:
-  void  Init(void* pContext);
-  void  DrawQuad(TRenderVertex* verts);
-  void  Begin(void);
-  void  Release(void);
+  void Init(void* pContext);
+  void DrawQuad(TRenderVertex* verts);
+  void Begin(void);
+  void Release(void);
 
 #ifdef WIN32
   ID3D11DeviceContext* m_pContext;

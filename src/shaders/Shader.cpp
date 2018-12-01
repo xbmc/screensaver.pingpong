@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *  Copyright (C) 2005-2018 Team Kodi
+ *  This file is part of Kodi - https://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
@@ -21,6 +21,8 @@
 #include "Shader.h"
 #include <stdio.h>
 #include <kodi/Filesystem.h>
+
+#include <iostream>
 
 #define LOG_SIZE 1024
 #define GLchar char
@@ -33,7 +35,11 @@ bool CShader::LoadSource(std::string &file)
   char buffer[1024];
 
   kodi::vfs::CFile source;
-  source.OpenFile(file);
+  if (!source.OpenFile(file))
+  {
+    kodi::Log(ADDON_LOG_ERROR, "Failed to load shader source: '%s'", file.c_str());
+    return false;
+  }
   size_t len = source.Read(buffer, sizeof(buffer));
   m_source.assign(buffer);
   m_source[len] = 0;
@@ -59,14 +65,16 @@ bool CVertexShader::Compile()
   if (params[0] != GL_TRUE)
   {
     GLchar log[LOG_SIZE];
-    glGetShaderInfoLog(m_vertexShader, LOG_SIZE, NULL, log);
+    glGetShaderInfoLog(m_vertexShader, LOG_SIZE, nullptr, log);
+    kodi::Log(ADDON_LOG_ERROR, "CVertexShader::%s: %s", __FUNCTION__, log);
     m_lastLog = log;
     m_compiled = false;
   }
   else
   {
     GLchar log[LOG_SIZE];
-    glGetShaderInfoLog(m_vertexShader, LOG_SIZE, NULL, log);
+    glGetShaderInfoLog(m_vertexShader, LOG_SIZE, nullptr, log);
+    kodi::Log(ADDON_LOG_ERROR, "CVertexShader::%s: %s", __FUNCTION__, log);
     m_lastLog = log;
     m_compiled = true;
   }
@@ -100,14 +108,16 @@ bool CPixelShader::Compile()
   if (params[0] != GL_TRUE)
   {
     GLchar log[LOG_SIZE];
-    glGetShaderInfoLog(m_pixelShader, LOG_SIZE, NULL, log);
+    glGetShaderInfoLog(m_pixelShader, LOG_SIZE, nullptr, log);
+    kodi::Log(ADDON_LOG_ERROR, "CPixelShader::%s: %s", __FUNCTION__, log);
     m_lastLog = log;
     m_compiled = false;
   }
   else
   {
     GLchar log[LOG_SIZE];
-    glGetShaderInfoLog(m_pixelShader, LOG_SIZE, NULL, log);
+    glGetShaderInfoLog(m_pixelShader, LOG_SIZE, nullptr, log);
+    kodi::Log(ADDON_LOG_ERROR, "CPixelShader::%s: %s", __FUNCTION__, log);
     m_lastLog = log;
     m_compiled = true;
   }
@@ -129,30 +139,15 @@ CShaderProgram::CShaderProgram(std::string &vert, std::string &frag)
 {
   std::string path = kodi::GetAddonPath();
 
-#if defined(HAS_OPENGL)
-  int major = 0;
-  int minor = 0;
-  const char* ver = (const char*)glGetString(GL_VERSION);
-  if (ver != 0)
-  {
-    sscanf(ver, "%d.%d", &major, &minor);
-  }
-
-  if (major > 3 ||
-      (major == 3 && minor >= 2))
-  {
-    path += "/resources/shaders/1.5/";
-  }
-  else {
-printf("using 1.2 shader\n");
-    path += "/resources/shaders/1.2/";
-}
+#if defined(HAS_GL)
+  path += "/resources/shaders/GL/";
+#elif defined(HAS_GLES)
+  path += "/resources/shaders/GLES/";
 #else
-  path += "/resources/shaders/1.2/";
+  #error Shader compiled without GL support!
 #endif
 
   std::string file;
-
   m_pFP = new CPixelShader();
   file = path + frag;
   m_pFP->LoadSource(file);
@@ -163,8 +158,10 @@ printf("using 1.2 shader\n");
 
 void CShaderProgram::Free()
 {
-  m_pVP->Free();
-  m_pFP->Free();
+  if (m_pVP)
+    m_pVP->Free();
+  if (m_pFP)
+    m_pFP->Free();
   if (m_shaderProgram)
     glDeleteProgram(m_shaderProgram);
   m_shaderProgram = 0;
@@ -175,23 +172,33 @@ bool CShaderProgram::CompileAndLink()
 {
   GLint params[4];
 
+  if (!m_pVP || !m_pFP)
+    return false;
+
   // free resources
   Free();
 
   // compiled vertex shader
   if (!m_pVP->Compile())
+  {
+    kodi::Log(ADDON_LOG_ERROR, "GL: Error compiling vertex shader");
     return false;
+  }
 
   // compile pixel shader
   if (!m_pFP->Compile())
   {
     m_pVP->Free();
+    kodi::Log(ADDON_LOG_ERROR, "GL: Error compiling fragment shader");
     return false;
   }
 
   // create program object
   if (!(m_shaderProgram = glCreateProgram()))
+  {
+    kodi::Log(ADDON_LOG_ERROR, "GL: Error creating shader program handle");
     goto error;
+  }
 
   // attach the vertex shader
   glAttachShader(m_shaderProgram, m_pVP->Handle());
@@ -203,7 +210,8 @@ bool CShaderProgram::CompileAndLink()
   if (params[0] != GL_TRUE)
   {
     GLchar log[LOG_SIZE];
-    glGetProgramInfoLog(m_shaderProgram, LOG_SIZE, NULL, log);
+    glGetProgramInfoLog(m_shaderProgram, LOG_SIZE, nullptr, log);
+    kodi::Log(ADDON_LOG_ERROR, "CShaderProgram::%s: %s", __FUNCTION__, log);
     goto error;
   }
 
@@ -234,7 +242,8 @@ bool CShaderProgram::Enable()
         if (params[0] != GL_TRUE)
         {
           GLchar log[LOG_SIZE];
-          glGetProgramInfoLog(m_shaderProgram, LOG_SIZE, NULL, log);
+          glGetProgramInfoLog(m_shaderProgram, LOG_SIZE, nullptr, log);
+          kodi::Log(ADDON_LOG_ERROR, "CShaderProgram::%s: %s", __FUNCTION__, log);
         }
         m_validated = true;
       }
