@@ -1,38 +1,38 @@
 /*
-*      Copyright (C) 2005-2013 Team XBMC
-*      http://www.xbmc.org
-*
-*  This Program is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2, or (at your option)
-*  any later version.
-*
-*  This Program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with XBMC; see the file COPYING.  If not, see
-*  <http://www.gnu.org/licenses/>.
-*
-*/
+ *  Copyright (C) 2005-2018 Team Kodi
+ *  This file is part of Kodi - https://kodi.tv
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kodi; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include "Matrix.h"
 #include <cmath>
 
-#define MODE_WITHIN_RANGE(m)       ((m >= 0) && (m < (int)MM_MATRIXSIZE))
+#define MODE_WITHIN_RANGE(m) ((m >= 0) && (m < (int)MM_MATRIXSIZE))
 
 CMatrix::CMatrix()
 {
-  for (unsigned int i=0; i < MM_MATRIXSIZE; i++)
+  for (unsigned int i = 0; i < MM_MATRIXSIZE; ++i)
   {
     m_matrices[i].push_back(MatrixWrapper());
     MatrixMode((EMATRIXMODE)i);
     LoadIdentity();
   }
   m_matrixMode = (EMATRIXMODE)-1;
-  m_pMatrix    = NULL;
+  m_pMatrix = nullptr;
 }
 
 CMatrix::~CMatrix()
@@ -48,7 +48,7 @@ GLfloat* CMatrix::GetMatrix(EMATRIXMODE mode)
       return m_matrices[mode].back();
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void CMatrix::MatrixMode(EMATRIXMODE mode)
@@ -61,7 +61,7 @@ void CMatrix::MatrixMode(EMATRIXMODE mode)
   else
   {
     m_matrixMode = (EMATRIXMODE)-1;
-    m_pMatrix    = NULL;
+    m_pMatrix = nullptr;
   }
 }
 
@@ -70,7 +70,7 @@ void CMatrix::PushMatrix()
   if (m_pMatrix && MODE_WITHIN_RANGE(m_matrixMode))
   {
     m_matrices[m_matrixMode].push_back(MatrixWrapper(m_pMatrix));
-    m_pMatrix =  m_matrices[m_matrixMode].back();
+    m_pMatrix = m_matrices[m_matrixMode].back();
   }
 }
 
