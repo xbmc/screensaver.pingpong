@@ -24,29 +24,15 @@
 #include "main.h"
 #include "pingpong.h"
 
-#ifdef HAS_GLES2
-#if defined(__APPLE__)
-#include <OpenGLES/ES2/gl.h>
-#include <OpenGLES/ES2/glext.h>
-#else
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#endif//__APPLE__
-#elif defined(__APPLE__)
-#include <OpenGL/gl.h>
-#elif !defined(WIN32)
-#include <GL/gl.h>
-#endif
-
 #include <vector>
 
-#define NUMQUADS	3
+#define NUMQUADS 3
 
-#define TOPANDBOTTOM	200.0f
-#define PADDLEPOSX	20.0f
-#define PADDLEMAXSPEED	500.0f
+#define TOPANDBOTTOM    200.0f
+#define PADDLEPOSX      20.0f
+#define PADDLEMAXSPEED  500.0f
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
 ////////////////////////////////////////////////////////////////////////////
 //
@@ -75,66 +61,70 @@ CPingPong::~CPingPong()
 
 ////////////////////////////////////////////////////////////////////////////
 //
-bool	CPingPong::RestoreDevice(CRenderD3D* render)
+bool CPingPong::RestoreDevice(CRenderD3D* render)
 {
   m_Width = render->m_Width;
   m_Height = render->m_Height;
-	m_Paddle[0].m_Pos.Set( PADDLEPOSX, render->m_Height/2, 0.0f);
-	m_Paddle[1].m_Pos.Set(render->m_Width-PADDLEPOSX, render->m_Height/2, 0.0f);
+  m_Paddle[0].m_Pos.Set( PADDLEPOSX, render->m_Height/2, 0.0f);
+  m_Paddle[1].m_Pos.Set(render->m_Width-PADDLEPOSX, render->m_Height/2, 0.0f);
 
-	m_Ball.m_Pos.Set((render->m_Width-2*PADDLEPOSX)/2.0+PADDLEPOSX, render->m_Height/2, 0.0f);
+  m_Ball.m_Pos.Set((render->m_Width-2*PADDLEPOSX)/2.0+PADDLEPOSX, render->m_Height/2, 0.0f);
   topy = 7*render->m_Height/8;
   bottomy = render->m_Height/8;
-	return true;
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
-void	CPingPong::InvalidateDevice(CRenderD3D* render)
+void CPingPong::InvalidateDevice(CRenderD3D* render)
 {
   render->Release();
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
-void		CPingPong::Update(f32 dt)
+void CPingPong::Update(f32 dt)
 {
-	// The paddle 'ai'. If you now can call it that
-	for (int i=0; i<2; i++)
-	{
-		f32 speed = 0.5f;
-		// If the ball is moving toward us then meet up with it (quickly)
-		if (DotProduct(m_Ball.m_Vel, m_Paddle[i].m_Pos) > 0.0f)
-		{
-			speed = 1.0f;
-		}
+  // The paddle 'ai'. If you now can call it that
+  for (int i = 0; i < 2; i++)
+  {
+    f32 speed = 0.5f;
+    // If the ball is moving toward us then meet up with it (quickly)
+    if (DotProduct(m_Ball.m_Vel, m_Paddle[i].m_Pos) > 0.0f)
+    {
+      speed = 1.0f;
+    }
 
-		if (m_Ball.m_Pos.y > m_Paddle[i].m_Pos.y)
-			m_Paddle[i].m_Pos.y += PADDLEMAXSPEED*dt*speed;
-		else
-			m_Paddle[i].m_Pos.y -= PADDLEMAXSPEED*dt*speed;
-	}
+    if (m_Ball.m_Pos.y > m_Paddle[i].m_Pos.y)
+      m_Paddle[i].m_Pos.y += PADDLEMAXSPEED*dt*speed;
+    else
+      m_Paddle[i].m_Pos.y -= PADDLEMAXSPEED*dt*speed;
+  }
 
-	// Perform collisions
-	if (m_Ball.m_Pos.y > topy)		m_Ball.m_Vel.y *= -1.0f;
-	if (m_Ball.m_Pos.y < bottomy)		m_Ball.m_Vel.y *= -1.0f;
+  // Perform collisions
+  if (m_Ball.m_Pos.y > topy)
+    m_Ball.m_Vel.y *= -1.0f;
+  if (m_Ball.m_Pos.y < bottomy)
+    m_Ball.m_Vel.y *= -1.0f;
 
-	if ((m_Ball.m_Pos.x-m_Ball.m_Size.x) < (m_Paddle[0].m_Pos.x+m_Paddle[0].m_Size.x))	m_Ball.m_Vel.x *= -1.0f;
-	if ((m_Ball.m_Pos.x+m_Ball.m_Size.x) > (m_Paddle[1].m_Pos.x-m_Paddle[1].m_Size.x))	m_Ball.m_Vel.x *= -1.0f;
-	
-	m_Ball.m_Pos.x += m_Ball.m_Vel.x*dt; 
-        m_Ball.m_Pos.y += m_Ball.m_Vel.y*dt;
+  if ((m_Ball.m_Pos.x-m_Ball.m_Size.x) < (m_Paddle[0].m_Pos.x+m_Paddle[0].m_Size.x))
+    m_Ball.m_Vel.x *= -1.0f;
+  if ((m_Ball.m_Pos.x+m_Ball.m_Size.x) > (m_Paddle[1].m_Pos.x-m_Paddle[1].m_Size.x))
+    m_Ball.m_Vel.x *= -1.0f;
+
+  m_Ball.m_Pos.x += m_Ball.m_Vel.x*dt;
+  m_Ball.m_Pos.y += m_Ball.m_Vel.y*dt;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
-bool		CPingPong::Draw(CRenderD3D* render)
+bool CPingPong::Draw(CRenderD3D* render)
 {
-	// Fill	in the vertex buffers with the quads
-        std::vector<TRenderVertex> vert(4*4);
-	TRenderVertex* vert2 = AddQuad(&vert[0], m_Ball.m_Pos, m_Ball.m_Size, m_Ball.m_Col);
-	vert2 = AddQuad(vert2, m_Paddle[0].m_Pos, m_Paddle[0].m_Size, m_Paddle[0].m_Col);
-	vert2 = AddQuad(vert2, m_Paddle[1].m_Pos, m_Paddle[1].m_Size, m_Paddle[1].m_Col);
+  // Fill  in the vertex buffers with the quads
+  std::vector<TRenderVertex> vert(4*4);
+  TRenderVertex* vert2 = AddQuad(&vert[0], m_Ball.m_Pos, m_Ball.m_Size, m_Ball.m_Col);
+  vert2 = AddQuad(vert2, m_Paddle[0].m_Pos, m_Paddle[0].m_Size, m_Paddle[0].m_Col);
+  vert2 = AddQuad(vert2, m_Paddle[1].m_Pos, m_Paddle[1].m_Size, m_Paddle[1].m_Col);
 
 #ifndef WIN32
   m_shader->PushMatrix();
@@ -194,24 +184,17 @@ bool		CPingPong::Draw(CRenderD3D* render)
   render->DrawQuad(&vert[4]);
   render->DrawQuad(&vert[8]);
 #endif
-	return true;
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // Adds a quad to a vertex buffer
 //
-TRenderVertex*	CPingPong::AddQuad(TRenderVertex* vert, const CVector& pos, const CVector& size, const CRGBA& col)
+TRenderVertex*  CPingPong::AddQuad(TRenderVertex* vert, const CVector& pos, const CVector& size, const CRGBA& col)
 {
-	vert->pos =	CVector(pos.x-size.x, pos.y+size.y, 0.0f);	vert->col =	col; vert++;
-	vert->pos =	CVector(pos.x-size.x, pos.y-size.y, 0.0f);	vert->col =	col; vert++;
-	vert->pos =	CVector(pos.x+size.x, pos.y+size.y, 0.0f);	vert->col =	col; vert++;
-	vert->pos =	CVector(pos.x+size.x, pos.y-size.y, 0.0f);	vert->col =	col; vert++;
-	return vert;
+  vert->pos = CVector(pos.x-size.x, pos.y+size.y, 0.0f);  vert->col = col; vert++;
+  vert->pos = CVector(pos.x-size.x, pos.y-size.y, 0.0f);  vert->col = col; vert++;
+  vert->pos = CVector(pos.x+size.x, pos.y+size.y, 0.0f);  vert->col = col; vert++;
+  vert->pos = CVector(pos.x+size.x, pos.y-size.y, 0.0f);  vert->col = col; vert++;
+  return vert;
 }
-
-
-
-
-
-
-
