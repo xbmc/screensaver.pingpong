@@ -32,15 +32,16 @@
 #define PADDLEPOSX      20.0f
 #define PADDLEMAXSPEED  500.0f
 
-#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
-
 ////////////////////////////////////////////////////////////////////////////
 //
 CPingPong::CPingPong()
 {
 #ifndef WIN32
-  m_shader = new CGUIShader("vert.glsl", "frag.glsl");
-  m_shader->CompileAndLink();
+  std::string fraqShader = kodi::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl");
+  std::string vertShader = kodi::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl");
+  if (!LoadShaderFiles(vertShader, fraqShader) || !CompileAndLink())
+    return;
+  
   glGenBuffers(1, &m_vertexVBO);
   glGenBuffers(1, &m_indexVBO);
 #endif
@@ -51,7 +52,6 @@ CPingPong::CPingPong()
 CPingPong::~CPingPong()
 {
 #ifndef WIN32
-  delete m_shader;
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glDeleteBuffers(1, &m_vertexVBO);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -71,6 +71,10 @@ bool CPingPong::RestoreDevice(CRenderD3D* render)
   m_Ball.m_Pos.Set((render->m_Width-2*PADDLEPOSX)/2.0+PADDLEPOSX, render->m_Height/2, 0.0f);
   topy = 7*render->m_Height/8;
   bottomy = render->m_Height/8;
+  
+#ifndef WIN32
+  m_projMat = glm::ortho(0.0f, float(m_Width), float(m_Height), 0.0f);
+#endif
   return true;
 }
 
@@ -127,26 +131,9 @@ bool CPingPong::Draw(CRenderD3D* render)
   vert2 = AddQuad(vert2, m_Paddle[1].m_Pos, m_Paddle[1].m_Size, m_Paddle[1].m_Col);
 
 #ifndef WIN32
-  m_shader->PushMatrix();
-  m_shader->Enable();
-
-  struct PackedVertex
-  {
-    GLfloat x, y, z;
-    GLfloat r, g, b;
-  } vertex[12];
+  EnableShader();
 
   GLubyte idx[3*8];
-  for (size_t j = 0; j < 12; ++j)
-  {
-    vertex[j].x = -1.0 + vert[j].pos.x * 2.0 / m_Width;
-    vertex[j].y = -1.0 + vert[j].pos.y * 2.0 / m_Height;
-    vertex[j].z = 0.0;
-    vertex[j].r = vert[j].col.r;
-    vertex[j].g = vert[j].col.g;
-    vertex[j].b = vert[j].col.b;
-  }
-
   for (size_t j = 0; j < 4; ++j)
   {
     idx[6*j]   = 4*j;
@@ -157,28 +144,24 @@ bool CPingPong::Draw(CRenderD3D* render)
     idx[6*j+5] = 4*j;
   }
 
-  GLint posLoc = m_shader->GetPosLoc();
-  GLint colLoc = m_shader->GetColLoc();
-
   glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(PackedVertex)*12, &vertex[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(TRenderVertex)*12, &vert[0], GL_STATIC_DRAW);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*24, idx, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(posLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, x)));
-  glVertexAttribPointer(colLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, r)));
+  glVertexAttribPointer(m_aPosition, 4, GL_FLOAT, 0, sizeof(TRenderVertex), BUFFER_OFFSET(offsetof(TRenderVertex, pos)));
+  glVertexAttribPointer(m_aColor, 4, GL_FLOAT, 0, sizeof(TRenderVertex), BUFFER_OFFSET(offsetof(TRenderVertex, col)));
 
-  glEnableVertexAttribArray(posLoc);
-  glEnableVertexAttribArray(colLoc);
+  glEnableVertexAttribArray(m_aPosition);
+  glEnableVertexAttribArray(m_aColor);
 
   glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_BYTE, 0);
 
-  glDisableVertexAttribArray(posLoc);
-  glDisableVertexAttribArray(colLoc);
+  glDisableVertexAttribArray(m_aPosition);
+  glDisableVertexAttribArray(m_aColor);
 
-  m_shader->Disable();
-  m_shader->PopMatrix();
+  DisableShader();
 #else
   render->DrawQuad(&vert[0]);
   render->DrawQuad(&vert[4]);
@@ -190,7 +173,7 @@ bool CPingPong::Draw(CRenderD3D* render)
 ////////////////////////////////////////////////////////////////////////////
 // Adds a quad to a vertex buffer
 //
-TRenderVertex*  CPingPong::AddQuad(TRenderVertex* vert, const CVector& pos, const CVector& size, const CRGBA& col)
+TRenderVertex* CPingPong::AddQuad(TRenderVertex* vert, const CVector& pos, const CVector& size, const CRGBA& col)
 {
   vert->pos = CVector(pos.x-size.x, pos.y+size.y, 0.0f);  vert->col = col; vert++;
   vert->pos = CVector(pos.x-size.x, pos.y-size.y, 0.0f);  vert->col = col; vert++;
@@ -198,3 +181,19 @@ TRenderVertex*  CPingPong::AddQuad(TRenderVertex* vert, const CVector& pos, cons
   vert->pos = CVector(pos.x+size.x, pos.y-size.y, 0.0f);  vert->col = col; vert++;
   return vert;
 }
+
+
+#ifndef WIN32
+void CPingPong::OnCompiledAndLinked()
+{
+  m_uProjMatrix = glGetUniformLocation(ProgramHandle(), "u_modelViewProjectionMatrix");
+  m_aPosition = glGetAttribLocation(ProgramHandle(), "a_position");
+  m_aColor = glGetAttribLocation(ProgramHandle(), "a_color");
+}
+
+bool CPingPong::OnEnabled()
+{
+  glUniformMatrix4fv(m_uProjMatrix, 1, GL_FALSE, glm::value_ptr(m_projMat));
+  return true;
+}
+#endif
