@@ -24,6 +24,7 @@
 #include "main.h"
 #include "pingpong.h"
 
+#include <cstddef>
 #include <vector>
 
 #define NUMQUADS 3
