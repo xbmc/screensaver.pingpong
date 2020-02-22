@@ -3,7 +3,8 @@
 This is a [Kodi](https://kodi.tv) screensaver addon.
 
 [![Build Status](https://travis-ci.org/xbmc/screensaver.pingpong.svg?branch=Matrix)](https://travis-ci.org/xbmc/screensaver.pingpong/branches)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/screensaver.pingpong?branch=Matrix&svg=true)](https://ci.appveyor.com/project/xbmc/screensaver-pingpong?branch=Matrix)
+[![Build Status](https://dev.azure.com/teamkodi/binary-addons/_apis/build/status/xbmc.screensaver.pingpong?branchName=Matrix)](https://dev.azure.com/teamkodi/binary-addons/_build/latest?definitionId=46&branchName=Matrix)
+<!--- [![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/screensaver.pingpong?branch=Matrix&svg=true)](https://ci.appveyor.com/project/xbmc/screensaver-pingpong?branch=Matrix) -->
 
 ## Build instructions
 
