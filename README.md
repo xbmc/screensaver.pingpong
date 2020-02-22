@@ -3,7 +3,8 @@
 This is a [Kodi](http://kodi.tv) screensaver addon.
 
 [![Build Status](https://travis-ci.org/xbmc/screensaver.pingpong.svg?branch=master)](https://travis-ci.org/xbmc/screensaver.pingpong)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/screensaver.pingpong?svg=true)](https://ci.appveyor.com/project/xbmc/screensaver-pingpong)
+[![Build Status](https://dev.azure.com/teamkodi/binary-addons/_apis/build/status/xbmc.screensaver.pingpong?branchName=Leia)](https://dev.azure.com/teamkodi/binary-addons/_build/latest?definitionId=46&branchName=Leia)
+<!--- [![Build Status](https://ci.appveyor.com/api/projects/status/github/xbmc/screensaver.pingpong?svg=true)](https://ci.appveyor.com/project/xbmc/screensaver-pingpong) -->
 
 ## Build instructions
 
