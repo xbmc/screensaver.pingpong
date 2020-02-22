@@ -1,5 +1,5 @@
 variables:
-  app_id: 'screensaver.asteroids'
+  app_id: 'screensaver.pingpong'
 
 trigger:
   branches:
