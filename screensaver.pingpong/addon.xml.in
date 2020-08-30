@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="screensaver.pingpong"
-  version="2.2.2"
+  version="2.3.0"
   name="Ping Pong"
   provider-name="Team Kodi">
   <requires>@ADDON_DEPENDS@</requires>
@@ -9,7 +9,9 @@
     point="xbmc.ui.screensaver"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
+    <summary lang="de_DE">Ping Pong Bildschirmschoner</summary>
     <summary lang="en_GB">Ping Pong screensaver</summary>
+    <description lang="de_DE">Lässt einen Ball hin und her springen.</description>
     <description lang="en_GB">Lets a ball jump back and forth.</description>
     <platform>@PLATFORM@</platform>
     <license>GPL-2.0-or-later</license>
