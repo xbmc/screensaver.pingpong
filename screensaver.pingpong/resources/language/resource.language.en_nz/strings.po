@@ -16,6 +16,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
+msgctxt "Addon Summary"
+msgid "Ping Pong screensaver"
+msgstr ""
+
+msgctxt "Addon Description"
+msgid "Lets a ball jump back and forth."
+msgstr ""
+
 msgctxt "#30000"
 msgid "Paddle 1 colour"
 msgstr ""
