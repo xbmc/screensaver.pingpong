@@ -15,8 +15,10 @@
     <assets>
       <icon>resources/icon.png</icon>
     </assets>
+    <summary lang="da_DK">Ping Pong pauseskærm</summary>
     <summary lang="de_DE">Ping Pong Bildschirmschoner</summary>
     <summary lang="en_GB">Ping Pong screensaver</summary>
+    <description lang="da_DK">Lad en bold springe frem og tilbage.</description>
     <description lang="de_DE">Lässt einen Ball hin und her springen.</description>
     <description lang="en_GB">Lets a ball jump back and forth.</description>
   </extension>
