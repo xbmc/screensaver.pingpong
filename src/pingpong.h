@@ -66,7 +66,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////
 //
-class ATTRIBUTE_HIDDEN CPingPong
+class ATTR_DLL_LOCAL CPingPong
 #ifndef WIN32
   : kodi::gui::gl::CShaderProgram
 #endif

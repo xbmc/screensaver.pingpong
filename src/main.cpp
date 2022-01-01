@@ -14,7 +14,7 @@
 #include <time.h>
 #include <string.h>
 
-class ATTRIBUTE_HIDDEN CScreensaverPingPong
+class ATTR_DLL_LOCAL CScreensaverPingPong
   : public kodi::addon::CAddonBase,
     public kodi::addon::CInstanceScreensaver
 {
@@ -45,18 +45,18 @@ CScreensaverPingPong::CScreensaverPingPong()
                                 {1.0, 0.0, 0.0},
                                 {0.0, 1.0, 0.0},
                                 {0.0, 0.0, 1.0}};
-  int c = kodi::GetSettingInt("paddle1");
+  int c = kodi::addon::GetSettingInt("paddle1");
   if (c < 5)
     m_col[0].Set(C[c][0], C[c][1], C[c][2], 1.0);
-  c = kodi::GetSettingInt("paddle2");
+  c = kodi::addon::GetSettingInt("paddle2");
   if (c < 5)
     m_col[1].Set(C[c][0], C[c][1], C[c][2], 1.0);
-  c = kodi::GetSettingInt("ball");
+  c = kodi::addon::GetSettingInt("ball");
   if (c < 5)
     m_col[2].Set(C[c][0], C[c][1], C[c][2], 1.0);
 
-  m_ballspeed[0] = kodi::GetSettingFloat("ballspeedx");
-  m_ballspeed[1] = kodi::GetSettingFloat("ballspeedy");
+  m_ballspeed[0] = kodi::addon::GetSettingFloat("ballspeedx");
+  m_ballspeed[1] = kodi::addon::GetSettingFloat("ballspeedy");
 
   m_render.m_Width = Width();
   m_render.m_Height = Height();
