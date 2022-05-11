@@ -18,11 +18,13 @@
     <summary lang="da_DK">Ping Pong pauseskærm</summary>
     <summary lang="de_DE">Ping Pong Bildschirmschoner</summary>
     <summary lang="en_GB">Ping Pong screensaver</summary>
+    <summary lang="es_ES">Salvapantallas Ping Pong</summary>
     <summary lang="ru_RU">Заставка Ping Pong</summary>
     <summary lang="zh_CN">乒乓球屏保</summary>
     <description lang="da_DK">Lad en bold springe frem og tilbage.</description>
     <description lang="de_DE">Lässt einen Ball hin und her springen.</description>
     <description lang="en_GB">Lets a ball jump back and forth.</description>
+    <description lang="es_ES">Permite a una bola saltar hacia atrás y hacia adelante.</description>
     <description lang="ru_RU">Теперь мяч будет прыгать вперёд-назад.</description>
     <description lang="zh_CN">让球来回弹跳。</description>
   </extension>
