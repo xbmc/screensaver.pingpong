@@ -130,6 +130,9 @@ bool CPingPong::Draw(CRenderD3D* render)
     idx[6*j+5] = 4*j;
   }
 
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
   glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(TRenderVertex)*12, &vert[0], GL_STATIC_DRAW);
 
