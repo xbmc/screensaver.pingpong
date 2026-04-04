@@ -22,27 +22,30 @@
 //
 CPingPong::CPingPong()
 {
-#ifndef WIN32
-  std::string fraqShader = kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl");
-  std::string vertShader = kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl");
-  if (!LoadShaderFiles(vertShader, fraqShader) || !CompileAndLink())
-    return;
-  
-  glGenBuffers(1, &m_vertexVBO);
-  glGenBuffers(1, &m_indexVBO);
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //
 CPingPong::~CPingPong()
 {
-#ifndef WIN32
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glDeleteBuffers(1, &m_vertexVBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glDeleteBuffers(1, &m_indexVBO);
-#endif
+  m_renderHelper->m_functions.__imp_glBindBuffer(GL_ARRAY_BUFFER, 0);
+  m_renderHelper->m_functions.__imp_glDeleteBuffers(1, &m_vertexVBO);
+  m_renderHelper->m_functions.__imp_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  m_renderHelper->m_functions.__imp_glDeleteBuffers(1, &m_indexVBO);
+}
+
+bool CPingPong::Init()
+{
+  m_renderHelper = dynamic_pointer_cast<kodi::gui::CRenderHelper>(kodi::gui::GetRenderHelper());
+
+  std::string fraqShader = kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl");
+  std::string vertShader = kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl");
+  if (!LoadShaderFiles(vertShader, fraqShader) || !CompileAndLink())
+    return false;
+
+  m_renderHelper->m_functions.__imp_glGenBuffers(1, &m_vertexVBO);
+  m_renderHelper->m_functions.__imp_glGenBuffers(1, &m_indexVBO);
+  return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -58,9 +61,7 @@ bool CPingPong::RestoreDevice(CRenderD3D* render)
   topy = 7*render->m_Height/8;
   bottomy = render->m_Height/8;
   
-#ifndef WIN32
   m_projMat = glm::ortho(0.0f, float(m_Width), float(m_Height), 0.0f);
-#endif
   return true;
 }
 
@@ -116,7 +117,6 @@ bool CPingPong::Draw(CRenderD3D* render)
   vert2 = AddQuad(vert2, m_Paddle[0].m_Pos, m_Paddle[0].m_Size, m_Paddle[0].m_Col);
   vert2 = AddQuad(vert2, m_Paddle[1].m_Pos, m_Paddle[1].m_Size, m_Paddle[1].m_Col);
 
-#ifndef WIN32
   EnableShader();
 
   GLubyte idx[3*8];
@@ -130,33 +130,27 @@ bool CPingPong::Draw(CRenderD3D* render)
     idx[6*j+5] = 4*j;
   }
 
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  m_renderHelper->m_functions.__imp_glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  m_renderHelper->m_functions.__imp_glClear(GL_COLOR_BUFFER_BIT);
 
-  glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(TRenderVertex)*12, &vert[0], GL_STATIC_DRAW);
+  m_renderHelper->m_functions.__imp_glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
+  m_renderHelper->m_functions.__imp_glBufferData(GL_ARRAY_BUFFER, sizeof(TRenderVertex)*12, &vert[0], GL_STATIC_DRAW);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*24, idx, GL_STATIC_DRAW);
+  m_renderHelper->m_functions.__imp_glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
+  m_renderHelper->m_functions.__imp_glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*24, idx, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(m_aPosition, 4, GL_FLOAT, 0, sizeof(TRenderVertex), BUFFER_OFFSET(offsetof(TRenderVertex, pos)));
-  glVertexAttribPointer(m_aColor, 4, GL_FLOAT, 0, sizeof(TRenderVertex), BUFFER_OFFSET(offsetof(TRenderVertex, col)));
+  m_renderHelper->m_functions.__imp_glVertexAttribPointer(m_aPosition, 4, GL_FLOAT, 0, sizeof(TRenderVertex), BUFFER_OFFSET(offsetof(TRenderVertex, pos)));
+  m_renderHelper->m_functions.__imp_glVertexAttribPointer(m_aColor, 4, GL_FLOAT, 0, sizeof(TRenderVertex), BUFFER_OFFSET(offsetof(TRenderVertex, col)));
 
-  glEnableVertexAttribArray(m_aPosition);
-  glEnableVertexAttribArray(m_aColor);
+  m_renderHelper->m_functions.__imp_glEnableVertexAttribArray(m_aPosition);
+  m_renderHelper->m_functions.__imp_glEnableVertexAttribArray(m_aColor);
 
-  glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_BYTE, 0);
+  m_renderHelper->m_functions.__imp_glDrawElements(GL_TRIANGLES, 24, GL_UNSIGNED_BYTE, 0);
 
-  glDisableVertexAttribArray(m_aPosition);
-  glDisableVertexAttribArray(m_aColor);
+  m_renderHelper->m_functions.__imp_glDisableVertexAttribArray(m_aPosition);
+  m_renderHelper->m_functions.__imp_glDisableVertexAttribArray(m_aColor);
 
   DisableShader();
-#else
-  render->ClearColor();
-  render->DrawQuad(&vert[0]);
-  render->DrawQuad(&vert[4]);
-  render->DrawQuad(&vert[8]);
-#endif
   return true;
 }
 
@@ -172,18 +166,18 @@ TRenderVertex* CPingPong::AddQuad(TRenderVertex* vert, const CVector& pos, const
   return vert;
 }
 
-
-#ifndef WIN32
 void CPingPong::OnCompiledAndLinked()
 {
-  m_uProjMatrix = glGetUniformLocation(ProgramHandle(), "u_modelViewProjectionMatrix");
-  m_aPosition = glGetAttribLocation(ProgramHandle(), "a_position");
-  m_aColor = glGetAttribLocation(ProgramHandle(), "a_color");
+  fprintf(stderr, "-1---------------> %s %p\n", __func__, m_renderHelper->m_functions.__imp_glGetUniformLocation);
+  m_uProjMatrix = m_renderHelper->m_functions.__imp_glGetUniformLocation(ProgramHandle(), "u_modelViewProjectionMatrix");
+  fprintf(stderr, "-2---------------> %s\n", __func__);
+  m_aPosition = m_renderHelper->m_functions.__imp_glGetAttribLocation(ProgramHandle(), "a_position");
+  fprintf(stderr, "-3---------------> %s\n", __func__);
+  m_aColor = m_renderHelper->m_functions.__imp_glGetAttribLocation(ProgramHandle(), "a_color");
 }
 
 bool CPingPong::OnEnabled()
 {
-  glUniformMatrix4fv(m_uProjMatrix, 1, GL_FALSE, glm::value_ptr(m_projMat));
+  m_renderHelper->m_functions.__imp_glUniformMatrix4fv(m_uProjMatrix, 1, GL_FALSE, glm::value_ptr(m_projMat));
   return true;
 }
-#endif
