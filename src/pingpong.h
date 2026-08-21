@@ -15,11 +15,10 @@
 ////////////////////////////////////////////////////////////////////////////
 //
 
-#ifndef WIN32
 #include <kodi/gui/gl/Shader.h>
+#include <kodi/gui/renderHelper.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#endif
 #include <kodi/AddonBase.h>
 
 typedef struct  TRenderVertex
@@ -67,13 +66,12 @@ public:
 ////////////////////////////////////////////////////////////////////////////
 //
 class ATTR_DLL_LOCAL CPingPong
-#ifndef WIN32
   : kodi::gui::gl::CShaderProgram
-#endif
 {
 public:
   CPingPong();
   ~CPingPong();
+  bool Init();
   bool RestoreDevice(CRenderD3D* render);
   void InvalidateDevice(CRenderD3D* render);
   void Update(f32 dt);
@@ -88,9 +86,10 @@ public:
 protected:
   TRenderVertex* AddQuad(TRenderVertex* vert, const CVector& pos, const CVector& size, const CRGBA& col);
 
-#ifndef WIN32
   void OnCompiledAndLinked() override;
   bool OnEnabled() override;
+
+  std::shared_ptr<kodi::gui::CRenderHelper> m_renderHelper;
 
   glm::mat4 m_projMat;
   GLuint m_vertexVBO;
@@ -98,5 +97,4 @@ protected:
   GLint m_uProjMatrix = -1;
   GLint m_aPosition = -1;
   GLint m_aColor = -1;
-#endif
 };
