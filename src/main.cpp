@@ -40,6 +40,7 @@ private:
 CScreensaverPingPong::CScreensaverPingPong()
   : m_timer(nullptr)
 {
+  fprintf(stderr, "----------------> %s\n", __func__);
   static const float C[5][3] = {{1.0, 1.0, 1.0},
                                 {0.5, 0.5, 0.5},
                                 {1.0, 0.0, 0.0},
@@ -69,8 +70,10 @@ CScreensaverPingPong::CScreensaverPingPong()
 //
 bool CScreensaverPingPong::Start()
 {
+  fprintf(stderr, "----------------> %s\n", __func__);
   srand(time(NULL));
 
+  m_pingPong.Init();
   m_pingPong.m_Paddle[0].m_Col = m_col[0];
   m_pingPong.m_Paddle[1].m_Col = m_col[1];
   m_pingPong.m_Ball.m_Col = m_col[2];
@@ -93,6 +96,7 @@ bool CScreensaverPingPong::Start()
 //
 void CScreensaverPingPong::Stop()
 {
+  fprintf(stderr, "----------------> %s\n", __func__);
   m_pingPong.InvalidateDevice(&m_render);
   SAFE_DELETE(m_timer);
 }
@@ -104,139 +108,31 @@ void CScreensaverPingPong::Stop()
 //
 void CScreensaverPingPong::Render()
 {
+  //fprintf(stderr, "----------------> %s\n", __func__);
   m_render.Begin();
   m_timer->Update();
   m_pingPong.Update(m_timer->GetDeltaTime());
   m_pingPong.Draw(&m_render);
 }
 
-#ifdef WIN32
-const BYTE PixelShader[] =
-{
-     68,  88,  66,  67,  18, 124,
-    182,  35,  30, 142, 196, 211,
-     95, 130,  91, 204,  99,  13,
-    249,   8,   1,   0,   0,   0,
-    124,   1,   0,   0,   4,   0,
-      0,   0,  48,   0,   0,   0,
-    124,   0,   0,   0, 188,   0,
-      0,   0,  72,   1,   0,   0,
-     65, 111, 110,  57,  68,   0,
-      0,   0,  68,   0,   0,   0,
-      0,   2, 255, 255,  32,   0,
-      0,   0,  36,   0,   0,   0,
-      0,   0,  36,   0,   0,   0,
-     36,   0,   0,   0,  36,   0,
-      0,   0,  36,   0,   0,   0,
-     36,   0,   0,   2, 255, 255,
-     31,   0,   0,   2,   0,   0,
-      0, 128,   0,   0,  15, 176,
-      1,   0,   0,   2,   0,   8,
-     15, 128,   0,   0, 228, 176,
-    255, 255,   0,   0,  83,  72,
-     68,  82,  56,   0,   0,   0,
-     64,   0,   0,   0,  14,   0,
-      0,   0,  98,  16,   0,   3,
-    242,  16,  16,   0,   1,   0,
-      0,   0, 101,   0,   0,   3,
-    242,  32,  16,   0,   0,   0,
-      0,   0,  54,   0,   0,   5,
-    242,  32,  16,   0,   0,   0,
-      0,   0,  70,  30,  16,   0,
-      1,   0,   0,   0,  62,   0,
-      0,   1,  73,  83,  71,  78,
-    132,   0,   0,   0,   4,   0,
-      0,   0,   8,   0,   0,   0,
-    104,   0,   0,   0,   0,   0,
-      0,   0,   1,   0,   0,   0,
-      3,   0,   0,   0,   0,   0,
-      0,   0,  15,   0,   0,   0,
-    116,   0,   0,   0,   0,   0,
-      0,   0,   0,   0,   0,   0,
-      3,   0,   0,   0,   1,   0,
-      0,   0,  15,  15,   0,   0,
-    122,   0,   0,   0,   0,   0,
-      0,   0,   0,   0,   0,   0,
-      3,   0,   0,   0,   2,   0,
-      0,   0,   3,   0,   0,   0,
-    122,   0,   0,   0,   1,   0,
-      0,   0,   0,   0,   0,   0,
-      3,   0,   0,   0,   2,   0,
-      0,   0,  12,   0,   0,   0,
-     83,  86,  95,  80,  79,  83,
-     73,  84,  73,  79,  78,   0,
-     67,  79,  76,  79,  82,   0,
-     84,  69,  88,  67,  79,  79,
-     82,  68,   0, 171,  79,  83,
-     71,  78,  44,   0,   0,   0,
-      1,   0,   0,   0,   8,   0,
-      0,   0,  32,   0,   0,   0,
-      0,   0,   0,   0,   0,   0,
-      0,   0,   3,   0,   0,   0,
-      0,   0,   0,   0,  15,   0,
-      0,   0,  83,  86,  95,  84,
-     65,  82,  71,  69,  84,   0,
-    171, 171
-};
-#endif
-
 void CRenderD3D::Init(void* pContext)
 {
-#ifdef WIN32
-  m_pContext = reinterpret_cast<ID3D11DeviceContext*>(pContext);
-  ID3D11Device* pDevice = nullptr;
-  m_pContext->GetDevice(&pDevice);
-
-  CD3D11_BUFFER_DESC vbDesc(sizeof(TRenderVertex) * 5, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-  pDevice->CreateBuffer(&vbDesc, nullptr, &m_pVBuffer);
-
-  pDevice->CreatePixelShader(PixelShader, sizeof(PixelShader), nullptr, &m_pPShader);
-
-  SAFE_RELEASE(pDevice);
-#endif
 }
 
 void CRenderD3D::Begin(void)
 {
-#ifdef WIN32
-  m_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-  UINT strides = sizeof(TRenderVertex), offsets = 0;
-  m_pContext->IASetVertexBuffers(0, 1, &m_pVBuffer, &strides, &offsets);
-  m_pContext->PSSetShader(m_pPShader, NULL, 0);
-#endif
 }
 
 void CRenderD3D::ClearColor()
 {
-#ifdef WIN32
-  ID3D11RenderTargetView* renderTargetView;
-  m_pContext->OMGetRenderTargets(1, &renderTargetView, nullptr);
-  float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-  m_pContext->ClearRenderTargetView(renderTargetView, clearColor);
-  SAFE_RELEASE(renderTargetView);
-#endif
 }
 
 void CRenderD3D::DrawQuad(TRenderVertex* verts)
 {
-#ifdef WIN32
-  TRenderVertex buff[] = { verts[0], verts[1], verts[2], verts[3] };
-  D3D11_MAPPED_SUBRESOURCE res = {};
-  if (SUCCEEDED(m_pContext->Map(m_pVBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res)))
-  {
-    memcpy(res.pData, buff, sizeof(buff));
-    m_pContext->Unmap(m_pVBuffer, 0);
-  }
-  m_pContext->Draw(4, 0);
-#endif
 }
 
 void CRenderD3D::Release(void)
 {
-#ifdef WIN32
-  SAFE_RELEASE(m_pPShader);
-  SAFE_RELEASE(m_pVBuffer);
-#endif
 }
 
 ADDONCREATOR(CScreensaverPingPong);
